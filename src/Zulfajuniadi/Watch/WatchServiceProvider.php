@@ -95,16 +95,16 @@ class WatchServiceProvider extends ServiceProvider {
   private function register_view_macro()
   {
     $watcher = $this;
-    HTML::macro('watcherScript', function($timeout = 3000) use ($watcher) {
+    HTML::macro('watcherScript', function($timeout = 3000, Array $additionalFolders = array()) use ($watcher) {
       if($this->watcher_enabled)
-        return '<script src="watchpoller.js" id="pollscript">' . $timeout . '</script>';
+        return '<script src="watchpoller.js" id="pollscript" data-additionalfolders="' . json_encode($additionalFolders) . '" data-timeout="' . $timeout . '"></script>';
     });
   }
 
   private function register_utils()
   {
     Route::get('/watchpoller.js', function(){
-      return Response::make(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'poll.min.js'), 200, array('content-type' => 'application/javascript'));
+      return Response::make(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'poll.js'), 200, array('content-type' => 'application/javascript'));
     });
     Route::get('/_watcherforcereload', function(){
       return Event::fire('watcher:reload');
@@ -124,6 +124,20 @@ class WatchServiceProvider extends ServiceProvider {
         foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($viewBase)) as $x) {
           if(!$x->isDir() && $x->getCTime() > $timestamp)
             $views[] = $x->getCTime();
+        }
+        if(isset($input->additionalFolders)) {
+          $additionalFolders = json_decode($additionalFolders);
+          if(is_array($additionalFolders)) {
+            foreach ($additionalFolders as $folder) {
+              $viewBase = base_path() . '/' . $folder;
+              if(is_dir($viewBase)) {
+                foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($viewBase)) as $x) {
+                  if(!$x->isDir() && $x->getCTime() > $timestamp)
+                    $views[] = $x->getCTime();
+                }
+              }
+            }
+          }
         }
         if(count($views) > 0) {
           $response = 'RELOAD';

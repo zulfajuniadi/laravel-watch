@@ -3,7 +3,12 @@
   var js = css = [], origin = window.location.origin;
   var pollscript = document.getElementById('pollscript');
   var timeout = defaultTimeout = 3000;
-  if(pollscript && (timeout = pollscript.textContent)) {
+  var additionalFolders = [];
+  if(pollscript && (timeout = pollscript.dataset.timeout)) {
+    var additionalFoldersJSON = pollscript.dataset.additionalfolders;
+    try {
+      additionalfolders = JSON.parse(additionalFoldersJSON);
+    } catch(e){};
     timeout = parseInt(timeout, 10);
     if(timeout < 500) {
       timeout = defaultTimeout;
@@ -37,7 +42,7 @@
       var req=new XMLHttpRequest();
       req.open("GET", url, false);
       req.send(null);
-      if(req.status== 200){
+      if(req.status === 200){
           if(req.response && req.response !== 'NOOP') {
             window.location.reload('true');
           }
@@ -53,7 +58,8 @@
       var params = JSON.stringify({
         timestamp: timestamp,
         js: js,
-        css: css
+        css: css,
+        additionalFolders:additionalfolders
       });
       lastModified('/_watcher?query=' + params);
       loop();
