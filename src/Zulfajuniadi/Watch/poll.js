@@ -7,8 +7,10 @@
   if(pollscript && (timeout = pollscript.dataset.timeout)) {
     var additionalFoldersJSON = pollscript.dataset.additionalfolders;
     try {
-      additionalfolders = JSON.parse(additionalFoldersJSON);
-    } catch(e){};
+      additionalFolders = JSON.parse(additionalFoldersJSON);
+    } catch(e){
+      console.log(additionalFoldersJSON);
+    };
     timeout = parseInt(timeout, 10);
     if(timeout < 500) {
       timeout = defaultTimeout;
@@ -59,7 +61,7 @@
         timestamp: timestamp,
         js: js,
         css: css,
-        additionalFolders:additionalfolders
+        additionalFolders:additionalFolders
       });
       lastModified('/_watcher?query=' + params);
       loop();

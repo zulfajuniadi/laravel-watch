@@ -79,7 +79,7 @@ class WatchStatus extends Command
 
 class WatchServiceProvider extends ServiceProvider {
 
-	protected $defer = false;
+  protected $defer = false;
 
   private $watcher_enabled = false;
   private $status_file;
@@ -97,7 +97,7 @@ class WatchServiceProvider extends ServiceProvider {
     $watcher = $this;
     HTML::macro('watcherScript', function($timeout = 3000, Array $additionalFolders = array()) use ($watcher) {
       if($this->watcher_enabled)
-        return '<script src="watchpoller.js" id="pollscript" data-additionalfolders="' . json_encode($additionalFolders) . '" data-timeout="' . $timeout . '"></script>';
+        return '<script src="watchpoller.js" id="pollscript" data-additionalfolders=\'' . json_encode($additionalFolders) . '\' data-timeout="' . $timeout . '"></script>';
     });
   }
 
@@ -116,6 +116,7 @@ class WatchServiceProvider extends ServiceProvider {
     Route::get('/_watcher', function(){
       clearstatcache();
       $input = json_decode(Input::Get('query'));
+      Event::fire('watcher:check', array($input));
       $response = 'NOOP';
       if($input !== null && $input->timestamp) {
         $timestamp = strtotime($input->timestamp);
@@ -126,7 +127,7 @@ class WatchServiceProvider extends ServiceProvider {
             $views[] = $x->getCTime();
         }
         if(isset($input->additionalFolders)) {
-          $additionalFolders = json_decode($additionalFolders);
+          $additionalFolders = $input->additionalFolders;
           if(is_array($additionalFolders)) {
             foreach ($additionalFolders as $folder) {
               $viewBase = base_path() . '/' . $folder;
@@ -165,8 +166,8 @@ class WatchServiceProvider extends ServiceProvider {
     });
   }
 
-	public function register()
-	{
+  public function register()
+  {
     $status_file = $this->status_file = storage_path() . DIRECTORY_SEPARATOR . 'meta' . DIRECTORY_SEPARATOR . '.watcher_enabled';
     $reload_file = $this->watcher_reload_file = storage_path() . DIRECTORY_SEPARATOR . 'meta' . DIRECTORY_SEPARATOR . '.watcher_reload';
     if(!file_exists($reload_file)){
