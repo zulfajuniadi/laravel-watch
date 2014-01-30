@@ -1,0 +1,20 @@
+{
+    "name": "zulfajuniadi/watch",
+    "description": "Watches your files for modifications and reloads the browser on changes. Supports event for easy integration",
+    "authors": [
+        {
+            "name": "Zulfa Juniadi bin Zulkifli",
+            "email": "zulfajuniadi@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "illuminate/support": "4.1.x"
+    },
+    "autoload": {
+        "psr-0": {
+            "Zulfajuniadi\\Watch": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
