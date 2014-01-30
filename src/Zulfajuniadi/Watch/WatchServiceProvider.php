@@ -97,7 +97,7 @@ class WatchServiceProvider extends ServiceProvider {
     $watcher = $this;
     HTML::macro('watcherScript', function($timeout = 3000) use ($watcher) {
       if($this->watcher_enabled)
-        return '<script src="watchpoller.js" id="pollscript">' . $timeout . '</script>';
+        return '<script src="watchpoller.min.js" id="pollscript">' . $timeout . '</script>';
     });
   }
 

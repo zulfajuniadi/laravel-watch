@@ -18,7 +18,7 @@
     var script, stylesheet, href, src;
     for (var i = 0; i < jsScripts.length; ++i) {
       script = jsScripts[i];
-      if(script.src && script.src !== origin + '/watchpoller.js' && script.src.indexOf(origin) > -1) {
+      if(script.src && script.src !== origin + '/watchpoller.js' && script.src !== origin + '/watchpoller.min.js' && script.src.indexOf(origin) > -1) {
         src = script.src.split(origin)[1];
         js.push(src);
       }
