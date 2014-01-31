@@ -44,9 +44,13 @@
       }
       var params = JSON.stringify(paramObj);
       microAjax('/_watcher?query=' + params, function(res){
-        res = JSON.parse(res);
-        if(res.do === 'RELOAD')
-          window.location.reload(true);
+        try {
+          res = JSON.parse(res);
+          if(res.do === 'RELOAD')
+            window.location.reload(true);
+        } catch(e) {
+          console.error(res);
+        }
         loop();
       });
     }, timeout);

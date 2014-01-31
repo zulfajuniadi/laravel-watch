@@ -146,21 +146,37 @@ class WatchServiceProvider extends ServiceProvider {
           if(!$x->isDir() && $x->getCTime() > $timestamp)
             $views[] = $x->getCTime();
         }
+        $controllerBase = app_path() . '/controllers/';
+        $controllers = array();
+        foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($controllerBase)) as $x) {
+          if(!$x->isDir() && $x->getCTime() > $timestamp)
+            $controllers[] = $x->getCTime();
+        }
+        $modelBase = app_path() . '/models/';
+        $models = array();
+        foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($modelBase)) as $x) {
+          if(!$x->isDir() && $x->getCTime() > $timestamp)
+            $models[] = $x->getCTime();
+        }
+        $otherDirs = array();
         if(isset($input->additionalfolders)) {
           $additionalfolders = $input->additionalfolders;
           if(is_array($additionalfolders)) {
             foreach ($additionalfolders as $folder) {
-              $viewBase = base_path() . '/' . $folder;
-              if(is_dir($viewBase)) {
-                foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($viewBase)) as $x) {
-                  if(!$x->isDir() && $x->getCTime() > $timestamp)
-                    $views[] = $x->getCTime();
+              $otherBase = base_path() . '/' . $folder;
+
+              if(is_dir($otherBase)) {
+
+                foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($otherBase)) as $x) {
+                  if(!$x->isDir() && $x->getCTime() > $timestamp) {
+                    $otherDirs[] = $x->getCTime();
+                  }
                 }
               }
             }
           }
         }
-        if(count($views) > 0) {
+        if(count($views) > 0 || count($controllers) > 0 || count($models) > 0 || count($otherDirs) > 0) {
           $response = array('do' => 'RELOAD');
         }
         if(isset($input->css)) {
