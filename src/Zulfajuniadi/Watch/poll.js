@@ -2,7 +2,7 @@
   var timestamp = (new Date()).toISOString();
   var js = css = [], origin = window.location.origin;
   var pollscript = document.getElementById('pollscript');
-  var timeout = defaultTimeout = 3000;
+  var timeout = (pollscript.dataset.timeout || 3000);
   console.log('Watcher started. Interval set at: ' + timeout + 'ms.');
   function getResources() {
     js = [];
