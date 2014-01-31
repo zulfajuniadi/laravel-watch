@@ -45,7 +45,8 @@
       req.open("GET", url, false);
       req.send(null);
       if(req.status === 200){
-          if(req.response && req.response !== 'NOOP') {
+          if(req.response && req.response === 'RELOAD') {
+            console.log(req.response);
             window.location.reload('true');
           }
           return req.response;
@@ -57,12 +58,20 @@
   }
   function loop() {
     setTimeout(function(){
-      var params = JSON.stringify({
+      var paramObj = {
         timestamp: timestamp,
         js: js,
-        css: css,
-        additionalFolders:additionalFolders
-      });
+        css: css
+      };
+      if(pollscript) {
+        var dataset = pollscript.dataset;
+        var keys = Object.keys(dataset);
+        for (var i = 0; i < keys.length; ++i) {
+          var key = keys[i];
+          paramObj[key] = dataset[key];
+        };
+      }
+      var params = JSON.stringify(paramObj);
       lastModified('/_watcher?query=' + params);
       loop();
     }, timeout);

@@ -95,9 +95,16 @@ class WatchServiceProvider extends ServiceProvider {
   private function register_view_macro()
   {
     $watcher = $this;
-    HTML::macro('watcherScript', function($timeout = 3000, Array $additionalFolders = array()) use ($watcher) {
+    HTML::macro('watcherScript', function($timeout = 3000, Array $additionalFolders = array(), Array $otherConfigs = array()) use ($watcher) {
+      $otherConfigsString = '';
+      foreach ($otherConfigs as $key => $value) {
+        if(is_array($value)) {
+          $value = serialize($value);
+        }
+        $otherConfigsString .= ' data-' . $key . '=\'' . $value . '\'';
+      }
       if($this->watcher_enabled)
-        return '<script src="watchpoller.js" id="pollscript" data-additionalfolders=\'' . json_encode($additionalFolders) . '\' data-timeout="' . $timeout . '"></script>';
+        return '<script src="watchpoller.js" id="pollscript" data-additionalfolders=\'' . serialize($additionalFolders) . '\' data-timeout="' . $timeout . '" ' . $otherConfigsString . '></script>';
     });
   }
 
@@ -111,11 +118,24 @@ class WatchServiceProvider extends ServiceProvider {
     });
   }
 
+  private function cleanup($obj) {
+    foreach ($obj as $key => $value) {
+      if(is_string($value) && strtolower($value) !== 'false') {
+        @$result = unserialize($value);
+        if($result !== false) {
+          $value = $result;
+        }
+      }
+      $obj->{$key} = $value;
+    }
+    return $obj;
+  }
+
   private function register_watcher()
   {
     Route::get('/_watcher', function(){
       clearstatcache();
-      $input = json_decode(Input::Get('query'));
+      $input = $this->cleanup(json_decode(Input::Get('query')));
       Event::fire('watcher:check', array($input));
       $response = 'NOOP';
       if($input !== null && $input->timestamp) {
