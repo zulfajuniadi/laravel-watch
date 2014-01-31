@@ -3,19 +3,6 @@
   var js = css = [], origin = window.location.origin;
   var pollscript = document.getElementById('pollscript');
   var timeout = defaultTimeout = 3000;
-  var additionalFolders = [];
-  if(pollscript && (timeout = pollscript.dataset.timeout)) {
-    var additionalFoldersJSON = pollscript.dataset.additionalfolders;
-    try {
-      additionalFolders = JSON.parse(additionalFoldersJSON);
-    } catch(e){
-      console.log(additionalFoldersJSON);
-    };
-    timeout = parseInt(timeout, 10);
-    if(timeout < 500) {
-      timeout = defaultTimeout;
-    }
-  }
   console.log('Watcher started. Interval set at: ' + timeout + 'ms.');
   function getResources() {
     js = [];
