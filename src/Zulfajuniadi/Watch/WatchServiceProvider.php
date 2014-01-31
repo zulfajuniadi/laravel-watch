@@ -146,10 +146,10 @@ class WatchServiceProvider extends ServiceProvider {
           if(!$x->isDir() && $x->getCTime() > $timestamp)
             $views[] = $x->getCTime();
         }
-        if(isset($input->additionalFolders)) {
-          $additionalFolders = $input->additionalFolders;
-          if(is_array($additionalFolders)) {
-            foreach ($additionalFolders as $folder) {
+        if(isset($input->additionalfolders)) {
+          $additionalfolders = $input->additionalfolders;
+          if(is_array($additionalfolders)) {
+            foreach ($additionalfolders as $folder) {
               $viewBase = base_path() . '/' . $folder;
               if(is_dir($viewBase)) {
                 foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($viewBase)) as $x) {
