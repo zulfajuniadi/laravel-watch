@@ -33,7 +33,6 @@
       req.send(null);
       if(req.status === 200){
           if(req.response && req.response === 'RELOAD') {
-            console.log(req.response);
             window.location.reload('true');
           }
           return req.response;
