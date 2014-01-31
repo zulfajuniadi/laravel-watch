@@ -137,7 +137,7 @@ class WatchServiceProvider extends ServiceProvider {
       clearstatcache();
       $input = $this->cleanup(json_decode(Input::Get('query')));
       Event::fire('watcher:check', array($input));
-      $response = 'NOOP';
+      $response = array('do' => 'NOOP');
       if($input !== null && $input->timestamp) {
         $timestamp = strtotime($input->timestamp);
         $viewBase = app_path() . '/views/';
@@ -161,28 +161,28 @@ class WatchServiceProvider extends ServiceProvider {
           }
         }
         if(count($views) > 0) {
-          $response = 'RELOAD';
+          $response = array('do' => 'RELOAD');
         }
         if(isset($input->css)) {
           foreach ($input->css as $cssFile) {
             if(filemtime(public_path() . $cssFile) > $timestamp) {
-              $response = 'RELOAD';
+              $response = array('do' => 'RELOAD');
             }
           }
         }
         if(isset($input->js)) {
           foreach ($input->js as $jsFile) {
             if(filemtime(public_path() . $jsFile) > $timestamp) {
-              $response = 'RELOAD';
+              $response = array('do' => 'RELOAD');
             }
           }
         }
         if(filemtime($this->watcher_reload_file) > $timestamp) {
-          $response = 'RELOAD';
+          $response = array('do' => 'RELOAD');
         }
-        return Response::make($response, 200, array('Last-Modified' => date('r')));
+        return Response::json($response);
       }
-      return Response::make($response, 200, array('Last-Modified' => date('r')));
+      return Response::json($response);
     });
   }
 

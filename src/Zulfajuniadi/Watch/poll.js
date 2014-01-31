@@ -1,4 +1,5 @@
 ;(function(){
+  function microAjax(B,A){this.bindFunction=function(E,D){return function(){return E.apply(D,[D])}};this.stateChange=function(D){if(this.request.readyState==4){this.callbackFunction(this.request.responseText)}};this.getRequest=function(){if(window.ActiveXObject){return new ActiveXObject("Microsoft.XMLHTTP")}else{if(window.XMLHttpRequest){return new XMLHttpRequest()}}return false};this.postBody=(arguments[2]||"");this.callbackFunction=A;this.url=B;this.request=this.getRequest();if(this.request){var C=this.request;C.onreadystatechange=this.bindFunction(this.stateChange,this);if(this.postBody!==""){C.open("POST",B,true);C.setRequestHeader("X-Requested-With","XMLHttpRequest");C.setRequestHeader("Content-type","application/x-www-form-urlencoded");C.setRequestHeader("Connection","close")}else{C.open("GET",B,true)}C.send(this.postBody)}};
   var timestamp = (new Date()).toISOString();
   var js = css = [], origin = window.location.origin;
   var pollscript = document.getElementById('pollscript');
@@ -26,22 +27,6 @@
     }
     loop();
   }
-  function lastModified(url) {
-    try {
-      var req=new XMLHttpRequest();
-      req.open("GET", url, false);
-      req.send(null);
-      if(req.status === 200){
-          if(req.response && req.response === 'RELOAD') {
-            window.location.reload('true');
-          }
-          return req.response;
-      }
-      else return false;
-    } catch(er) {
-      return er.message;
-    }
-  }
   function loop() {
     setTimeout(function(){
       var paramObj = {
@@ -58,8 +43,12 @@
         };
       }
       var params = JSON.stringify(paramObj);
-      lastModified('/_watcher?query=' + params);
-      loop();
+      microAjax('/_watcher?query=' + params, function(res){
+        res = JSON.parse(res);
+        if(res.do === 'RELOAD')
+          window.location.reload(true);
+        loop();
+      });
     }, timeout);
   }
   getResources();
