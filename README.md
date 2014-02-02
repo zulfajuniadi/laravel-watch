@@ -18,7 +18,7 @@ If you've been developing all these while without live reload, you're missing ou
 #INSTALLATION
 
 ```
-composer require zulfajuniadi/watch dev-master
+composer require zulfajuniadi/laravel-watch dev-master
 ```
 
 #SETUP
