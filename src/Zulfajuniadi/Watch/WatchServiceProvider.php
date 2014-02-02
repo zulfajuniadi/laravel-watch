@@ -104,7 +104,7 @@ class WatchServiceProvider extends ServiceProvider {
         $otherConfigsString .= ' data-' . $key . '=\'' . $value . '\'';
       }
       if($this->watcher_enabled)
-        return '<script src="watchpoller.js" id="pollscript" data-additionalfolders=\'' . serialize($additionalFolders) . '\' data-timeout="' . $timeout . '" ' . $otherConfigsString . '></script>';
+        return '<script src="/watchpoller.js" id="pollscript" data-additionalfolders=\'' . serialize($additionalFolders) . '\' data-timeout="' . $timeout . '" ' . $otherConfigsString . '></script>';
     });
   }
 
