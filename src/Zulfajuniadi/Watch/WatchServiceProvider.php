@@ -81,7 +81,7 @@ class WatchServiceProvider extends ServiceProvider {
 
   protected $defer = false;
 
-  private $watcher_enabled = false;
+  public $watcher_enabled = false;
   private $status_file;
 
   private function register_event_listener()
@@ -103,7 +103,7 @@ class WatchServiceProvider extends ServiceProvider {
         }
         $otherConfigsString .= ' data-' . $key . '=\'' . $value . '\'';
       }
-      if($this->watcher_enabled)
+      if($watcher->watcher_enabled)
         return '<script src="/watchpoller.js" id="pollscript" data-additionalfolders=\'' . serialize($additionalFolders) . '\' data-timeout="' . $timeout . '" ' . $otherConfigsString . '></script>';
     });
   }
@@ -118,24 +118,27 @@ class WatchServiceProvider extends ServiceProvider {
     });
   }
 
-  private function cleanup($obj) {
-    foreach ($obj as $key => $value) {
-      if(is_string($value) && strtolower($value) !== 'false') {
-        @$result = unserialize($value);
-        if($result !== false) {
-          $value = $result;
+  public function cleanup($obj) {
+    if($obj) {
+      foreach ($obj as $key => $value) {
+        if(is_string($value) && strtolower($value) !== 'false') {
+          @$result = unserialize($value);
+          if($result !== false) {
+            $value = $result;
+          }
         }
+        $obj->{$key} = $value;
       }
-      $obj->{$key} = $value;
     }
     return $obj;
   }
 
   private function register_watcher()
   {
-    Route::get('/_watcher', function(){
+    $watcher = $this;
+    Route::get('/_watcher', function() use ($watcher) {
       clearstatcache();
-      $input = $this->cleanup(json_decode(Input::Get('query')));
+      $input = $watcher->cleanup(json_decode(Input::Get('query')));
       Event::fire('watcher:check', array($input));
       $response = array('do' => 'NOOP');
       if($input !== null && $input->timestamp) {
@@ -193,7 +196,7 @@ class WatchServiceProvider extends ServiceProvider {
             }
           }
         }
-        if(filemtime($this->watcher_reload_file) > $timestamp) {
+        if(filemtime($watcher->watcher_reload_file) > $timestamp) {
           $response = array('do' => 'RELOAD');
         }
         return Response::json($response);
