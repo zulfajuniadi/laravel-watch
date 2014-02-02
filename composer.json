@@ -1,5 +1,5 @@
 {
-    "name": "zulfajuniadi/watch",
+    "name": "zulfajuniadi/laravel-watch",
     "description": "Watches your files for modifications and reloads the browser on changes. Supports event for easy integration",
     "authors": [
         {
