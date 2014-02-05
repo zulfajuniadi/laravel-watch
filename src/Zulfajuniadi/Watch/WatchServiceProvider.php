@@ -1,16 +1,15 @@
 <?php
 namespace Zulfajuniadi\Watch;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Console\Command;
-use \Route;
-use \HTML;
-use \Response;
-use \Input;
-use \Event;
-use \Queue;
 use \RecursiveIteratorIterator;
 use \RecursiveDirectoryIterator;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\HTML;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Console\Command;
 
 class EnableWatch extends Command
 {
@@ -95,7 +94,11 @@ class WatchServiceProvider extends ServiceProvider {
   private function register_view_macro()
   {
     $watcher = $this;
-    HTML::macro('watcherScript', function($timeout = 3000, Array $additionalFolders = array(), Array $otherConfigs = array()) use ($watcher) {
+    HTML::macro('watcherScript', function(
+      $timeout = 3000,
+      Array $additionalFolders = array(),
+      Array $otherConfigs = array()
+    ) use ($watcher) {
       $otherConfigsString = '';
       foreach ($otherConfigs as $key => $value) {
         if(is_array($value)) {
@@ -111,7 +114,7 @@ class WatchServiceProvider extends ServiceProvider {
   private function register_utils()
   {
     Route::get('/watchpoller.js', function(){
-      return Response::make(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'poll.js'), 200, array('content-type' => 'application/javascript'));
+      return Response::make(file_get_contents(__DIR__ . '/poll.js'), 200, array('content-type' => 'application/javascript'));
     });
     Route::get('/_watcherforcereload', function(){
       return Event::fire('watcher:reload');
@@ -133,6 +136,16 @@ class WatchServiceProvider extends ServiceProvider {
     return $obj;
   }
 
+  private function check_modified($directory, $timestamp)
+  {
+    $result = array();
+    foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($directory)) as $x) {
+      if(!$x->isDir() && $x->getCTime() > $timestamp)
+        $result[] = $x->getCTime();
+    }
+    return $result;
+  }
+
   private function register_watcher()
   {
     $watcher = $this;
@@ -144,37 +157,19 @@ class WatchServiceProvider extends ServiceProvider {
       if($input !== null && $input->timestamp) {
         $timestamp = strtotime($input->timestamp);
         $viewBase = app_path() . '/views/';
-        $views = array();
-        foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($viewBase)) as $x) {
-          if(!$x->isDir() && $x->getCTime() > $timestamp)
-            $views[] = $x->getCTime();
-        }
         $controllerBase = app_path() . '/controllers/';
-        $controllers = array();
-        foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($controllerBase)) as $x) {
-          if(!$x->isDir() && $x->getCTime() > $timestamp)
-            $controllers[] = $x->getCTime();
-        }
         $modelBase = app_path() . '/models/';
-        $models = array();
-        foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($modelBase)) as $x) {
-          if(!$x->isDir() && $x->getCTime() > $timestamp)
-            $models[] = $x->getCTime();
-        }
+        $views = $watcher->check_modified($viewBase, $timestamp);
+        $controllers = $watcher->check_modified($controllerBase, $timestamp);
+        $models = $watcher->check_modified($modelBase, $timestamp);
         $otherDirs = array();
         if(isset($input->additionalfolders)) {
           $additionalfolders = $input->additionalfolders;
           if(is_array($additionalfolders)) {
             foreach ($additionalfolders as $folder) {
-              $otherBase = base_path() . '/' . $folder;
-
+              $otherBase = base_path() . DS . $folder;
               if(is_dir($otherBase)) {
-
-                foreach (new RecursiveIteratorIterator (new RecursiveDirectoryIterator ($otherBase)) as $x) {
-                  if(!$x->isDir() && $x->getCTime() > $timestamp) {
-                    $otherDirs[] = $x->getCTime();
-                  }
-                }
+                $otherDirs += $watcher->check_modified($controllerBase, $timestamp);
               }
             }
           }
@@ -184,14 +179,16 @@ class WatchServiceProvider extends ServiceProvider {
         }
         if(isset($input->css)) {
           foreach ($input->css as $cssFile) {
-            if(filemtime(public_path() . $cssFile) > $timestamp) {
+            $file = public_path() . $cssFile;
+            if(file_exists($file) && filemtime($file) > $timestamp) {
               $response = array('do' => 'RELOAD');
             }
           }
         }
         if(isset($input->js)) {
           foreach ($input->js as $jsFile) {
-            if(filemtime(public_path() . $jsFile) > $timestamp) {
+            $file = public_path() . $jsFile;
+            if(file_exists($file) && filemtime($file) > $timestamp) {
               $response = array('do' => 'RELOAD');
             }
           }
@@ -207,8 +204,8 @@ class WatchServiceProvider extends ServiceProvider {
 
   public function register()
   {
-    $status_file = $this->status_file = storage_path() . DIRECTORY_SEPARATOR . 'meta' . DIRECTORY_SEPARATOR . '.watcher_enabled';
-    $reload_file = $this->watcher_reload_file = storage_path() . DIRECTORY_SEPARATOR . 'meta' . DIRECTORY_SEPARATOR . '.watcher_reload';
+    $status_file = $this->status_file = storage_path()  . '/meta/.watcher_enabled';
+    $reload_file = $this->watcher_reload_file = storage_path()  . '/meta/.watcher_reload';
     if(!file_exists($reload_file)){
       touch($reload_file);
     }
